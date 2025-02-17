@@ -9,29 +9,24 @@ def sample_tabular_data():
         "Time": [datetime(2024, 7, 24, 7, 56, 53, 639713, tzinfo=timezone.utc)],
         "Event": ["T"],  # T for trade
         "Asset": ["FAKEPACA"],
-        "Price": [133.85],
-        "Size": [4.0]
+        "Price": [126.55],
+        "Size": [1.0]
     })
 
 @pytest.fixture
 def sample_alpaca_data():
-    # Note: This represents a quote message that will be flattened into bid/ask rows
-    # The from_messages function will need to convert this flat format back to Alpaca's nested format
+    # Trade message in Alpaca format
     return pl.DataFrame({
-        "Time": [datetime(2024, 7, 24, 7, 56, 53, 639713, tzinfo=timezone.utc)],
-        "Event": ["B"],  # B for bid
-        "Asset": ["FAKEPACA"],
-        "Price": [133.85],
-        "Size": [4.0]
-    }).vstack(
-        pl.DataFrame({
-            "Time": [datetime(2024, 7, 24, 7, 56, 53, 639713, tzinfo=timezone.utc)],
-            "Event": ["S"],  # S for ask (sell)
-            "Asset": ["FAKEPACA"],
-            "Price": [135.77],
-            "Size": [5.0]
-        })
-    )
+        "T": ["t"],  # message type for trade
+        "S": ["FAKEPACA"],  # symbol
+        "i": [96921],  # trade ID
+        "x": ["D"],  # exchange code
+        "p": [126.55],  # price
+        "s": [1],  # size
+        "t": [datetime(2024, 7, 24, 7, 56, 53, 639713, tzinfo=timezone.utc)],
+        "c": [["@", "I"]],  # conditions
+        "z": ["C"]  # tape
+    })
 
 def test_from_messages_dataframe(sample_tabular_data):
     result = from_messages(sample_tabular_data)
