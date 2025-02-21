@@ -56,10 +56,15 @@ def test_roundtrip_conversion(sample_tabular_data):
     """Test that converting to Alpaca format and back preserves data"""
     alpaca_format = from_messages(sample_tabular_data)
     result = to_messages(alpaca_format)
-    
-    # Compare original and final dataframes
     pl.assert_frame_equal(result, sample_tabular_data)
 
+#Cursor generated test below to compare piece by piece
+"""
+    # Compare original and final dataframes by checking if all rows match
+    assert result.sort(["Time", "Event", "Asset"]).select(sorted(result.columns)).equals(
+        sample_tabular_data.sort(["Time", "Event", "Asset"]).select(sorted(sample_tabular_data.columns))
+    ), "Roundtrip conversion did not preserve data"
+"""
 def test_quote_flattening():
     """Test that quote messages are properly flattened into bid/ask rows"""
     # Create a quote message in Alpaca format
