@@ -1,7 +1,7 @@
 import polars as pl
 from datetime import datetime, timezone
 
-def from_messages(df: pl.DataFrame | pl.LazyFrame) -> pl.DataFrame | pl.LazyFrame:
+def from_messages(df: pl.DataFrame) -> pl.DataFrame:
     """
     Convert from tabular format (Time, Event, Asset, Price, Size) to Alpaca WebSocket format
     
@@ -11,9 +11,6 @@ def from_messages(df: pl.DataFrame | pl.LazyFrame) -> pl.DataFrame | pl.LazyFram
     Returns:
         DataFrame/LazyFrame with columns matching Alpaca WebSocket JSON structure
     """
-    is_lazy = isinstance(df, pl.LazyFrame)
-    if is_lazy:
-        df = df.collect()
     trades = df.filter(pl.col("Event") == "T")
     bids = df.filter(pl.col("Event") == "B")
     asks = df.filter(pl.col("Event") == "S")
@@ -67,10 +64,7 @@ def from_messages(df: pl.DataFrame | pl.LazyFrame) -> pl.DataFrame | pl.LazyFram
     else:
         result = trades if len(trades) > 0 else pl.DataFrame(result_cols)
     
-    if is_lazy:
-        return result.lazy()
-    else:
-        return result
+    return result
 
 def to_messages(df: pl.DataFrame | pl.LazyFrame) -> pl.DataFrame | pl.LazyFrame:
     """
@@ -126,7 +120,4 @@ def to_messages(df: pl.DataFrame | pl.LazyFrame) -> pl.DataFrame | pl.LazyFrame:
             "Price": [],
             "Size": []
         })
-    if is_lazy:
-        return result.lazy()
-    else:
-        return result
+    return result

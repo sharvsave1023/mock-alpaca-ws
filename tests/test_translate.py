@@ -2,6 +2,7 @@ import polars as pl
 import pytest
 from datetime import datetime, timezone
 from mock_alpaca_ws import from_messages, to_messages
+from polars.testing import assert_frame_equal
 
 @pytest.fixture
 def sample_tabular_data():
@@ -33,38 +34,17 @@ def test_from_messages_dataframe(sample_tabular_data):
     assert isinstance(result, pl.DataFrame)
     assert all(col in result.columns for col in ["T", "S", "t", "bp", "bs", "ap", "as"])
 
-def test_from_messages_lazyframe(sample_tabular_data):
-    lazy_df = sample_tabular_data.lazy()
-    result = from_messages(lazy_df)
-    assert isinstance(result, pl.LazyFrame)
-    result_df = result.collect()
-    assert all(col in result_df.columns for col in ["T", "S", "t", "bp", "bs", "ap", "as"])
-
 def test_to_messages_dataframe(sample_alpaca_data):
     result = to_messages(sample_alpaca_data)
     assert isinstance(result, pl.DataFrame)
     assert all(col in result.columns for col in ["Time", "Event", "Asset", "Price", "Size"])
 
-def test_to_messages_lazyframe(sample_alpaca_data):
-    lazy_df = sample_alpaca_data.lazy()
-    result = to_messages(lazy_df)
-    assert isinstance(result, pl.LazyFrame)
-    result_df = result.collect()
-    assert all(col in result_df.columns for col in ["Time", "Event", "Asset", "Price", "Size"])
-
 def test_roundtrip_conversion(sample_tabular_data):
     """Test that converting to Alpaca format and back preserves data"""
     alpaca_format = from_messages(sample_tabular_data)
     result = to_messages(alpaca_format)
-    pl.assert_frame_equal(result, sample_tabular_data)
+    assert_frame_equal(result, sample_tabular_data)
 
-#Cursor generated test below to compare piece by piece
-"""
-    # Compare original and final dataframes by checking if all rows match
-    assert result.sort(["Time", "Event", "Asset"]).select(sorted(result.columns)).equals(
-        sample_tabular_data.sort(["Time", "Event", "Asset"]).select(sorted(sample_tabular_data.columns))
-    ), "Roundtrip conversion did not preserve data"
-"""
 def test_quote_flattening():
     """Test that quote messages are properly flattened into bid/ask rows"""
     # Create a quote message in Alpaca format
